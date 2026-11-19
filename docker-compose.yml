@@ -1,0 +1,28 @@
+services:
+  mssql:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dn-cap60-mssql:2022
+    container_name: dn_cap60_mssql
+    restart: unless-stopped
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    env_file:
+      - .env
+    volumes:
+      - dn_cap60_mssql_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -C -S 127.0.0.1 -U sa -h -1 -W -Q \"SET NOCOUNT ON; IF (SELECT COUNT(*) FROM sys.databases WHERE state = 0 AND name IN (N'dngsm',N'dnmembership',N'dnserverlog',N'dnstaging',N'dnworld')) = 5 SELECT 1 ELSE THROW 50000, 'DBs not ready', 1;\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  dn_cap60_mssql_data:
+    name: dn_cap60_mssql_data
