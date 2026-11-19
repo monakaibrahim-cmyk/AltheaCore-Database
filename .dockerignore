@@ -1,0 +1,5 @@
+.env
+*.log
+*.bak
+scripts/build-sql-bundle.py
+README.md
